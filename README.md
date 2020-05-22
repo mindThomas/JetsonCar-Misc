@@ -8,3 +8,8 @@ cd build
 cmake ..
 make
 ```
+
+## Notes
+Install `cmake-qt-gui` to configure CMakeLists projects interactively.
+
+cmake v3.10 or later is required due to GTSAM

@@ -25,7 +25,7 @@ fi
 # Create makefiles and build
 echo "Building GTSAM library"
 cd ${GTSAM_BUILD_PATH}
-cmake ..
+cmake -DCMAKE_BUILD_TYPE=Release ..
 make check -j3
 
 BUILD_PATH=${GTSAM_BUILD_PATH}/gtsam/libgtsam.so

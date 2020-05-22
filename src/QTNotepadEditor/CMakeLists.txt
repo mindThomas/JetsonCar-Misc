@@ -11,4 +11,4 @@ set(binary_dependencies
 # Configure build as release (for maximum optimization) 
 set(CMAKE_BUILD_TYPE "Release")
 
-prepare_qt_binary()
+prepare_qt_binary() 

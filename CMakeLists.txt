@@ -15,10 +15,13 @@
 # e-mail   :  thomasj@tkjelectronics.dk
 # ------------------------------------------
 
-
 project(JetsonCar-Misc)
 
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.10)
+
+if(POLICY CMP0020)
+  cmake_policy(SET CMP0020 NEW)
+endif()
 
 message("##################################\n"
         "# Thomas' Automatic CMake loader #\n"
@@ -30,11 +33,14 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED YES)
 set(CMAKE_CXX_EXTENSIONS NO) # use -std=c++14 instead of -std=gnu++14
 
-#include(CheckCXXCompilerFlag)
-#CHECK_CXX_COMPILER_FLAG("-march=native" COMPILER_SUPPORTS_MARCH_NATIVE)
-#if(COMPILER_SUPPORTS_MARCH_NATIVE)
-#    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
-#endif()
+## Compile for native architecture to optimize performance
+include(CheckCXXCompilerFlag)
+CHECK_CXX_COMPILER_FLAG("-march=native" COMPILER_SUPPORTS_MARCH_NATIVE)
+if(COMPILER_SUPPORTS_MARCH_NATIVE)
+    message(STATUS "Enabling native architecture")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=native")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
+endif()
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=x86-64 -mavx")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Winit-self -D_FORTIFY_SOURCE=2 -fstack-protector-strong") # "-Werror=format-security -Werror=implicit-function-declaration"
@@ -74,10 +80,11 @@ message(STATUS "  CMAKE_CXX_FLAGS_MINSIZEREL: ${CMAKE_CXX_FLAGS_MINSIZEREL}")
 message(STATUS "\n--")
 
 #LIST(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake_common)
+include(cmake_common/gtsam/gtsam.cmake) # also includes Eigen
 include(cmake_common/cuda.cmake)
 include(cmake_common/qt5.cmake) # MUST COME BEFORE pcl.cmake
 include(cmake_common/pcl.cmake)
-include(cmake_common/eigen/eigen.cmake)
+#include(cmake_common/eigen/eigen.cmake)
 include(cmake_common/opencv/opencv3.cmake)
 include(cmake_common/pangolin/pangolin.cmake)
 include(cmake_common/openmp.cmake) # for code optimization
@@ -87,8 +94,9 @@ include(cmake_common/openblas/openblas.cmake)
 include(cmake_common/easy_profiler/easy_profiler.cmake) # profiling tool
 include(cmake_common/acado/acado.cmake) # for MPC code generation
 include(cmake_common/mrpt/mrpt.cmake)
-include(cmake_common/gtsam/gtsam.cmake)
 include(cmake_common/g2o/g2o.cmake)
+
+message(STATUS "Eigen include directory:  ${EIGEN3_INCLUDE_DIR}")
 
 find_package(Boost REQUIRED COMPONENTS system signals python thread program_options regex filesystem QUIET)
 mark_as_advanced(BOOST_THREAD_LIBRARY)
@@ -102,6 +110,11 @@ include_directories(... ${Boost_INCLUDE_DIRS})
 link_directories(... ${Boost_LIBRARY_DIRS})
 
 include_directories(include)
+
+get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
+foreach(dir ${dirs})
+  message(STATUS "dir='${dir}'")
+endforeach()
 
 # Make a compiler flag for the current source folder path
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__SOURCE_FOLDER__='\"$(dir $(abspath $<))\"'")
@@ -172,6 +185,28 @@ MACRO(prepare_binary)
     #message(STATUS "        Binary headers: " ${binary_headers})
     #message(STATUS "        Global headers: " ${GLOBAL_HEADERS})
     add_executable( ${folder_name} ${binary_sources} ${binary_headers} ${GLOBAL_HEADERS} )
+    target_link_libraries( ${folder_name} ${binary_dependencies} )
+
+    set_target_properties( ${folder_name} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} )
+    set_target_properties( ${folder_name} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} )
+    set_target_properties( ${folder_name} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} )
+
+    set_target_properties( ${folder_name} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY} )
+    set_target_properties( ${folder_name} PROPERTIES LIBRARY_OUTPUT_DIRECTORY_DEBUG ${CMAKE_LIBRARY_OUTPUT_DIRECTORY} )
+    set_target_properties( ${folder_name} PROPERTIES LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CMAKE_LIBRARY_OUTPUT_DIRECTORY} )
+ENDMACRO()
+
+MACRO(prepare_qt_binary)
+    message(STATUS "   " ${CMAKE_CURRENT_SOURCE_DIR} "\t\t[${CMAKE_BUILD_TYPE}]")
+    update_folder_name() # Name the binary in this folder as the folder name
+    FILE(GLOB_RECURSE binary_sources *.cpp) # find all cpp files
+    FILE(GLOB_RECURSE binary_headers *.hpp) # find all hpp files
+    FILE(GLOB_RECURSE ui_files *.ui) # find all ui files
+    FILE(GLOB_RECURSE qr_resources *.qrc) # find all qrc files
+    #message(STATUS "        Binary sources: " ${binary_sources})
+    #message(STATUS "        Binary headers: " ${binary_headers})
+    #message(STATUS "        Global headers: " ${GLOBAL_HEADERS})
+    add_executable( ${folder_name} ${binary_sources} ${binary_headers} ${ui_files} ${qr_resources} ${GLOBAL_HEADERS} )
     target_link_libraries( ${folder_name} ${binary_dependencies} )
 
     set_target_properties( ${folder_name} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} )

@@ -14,6 +14,12 @@ set(PCL_LIBRARIES ${PCL_LIBRARIES} ${PCL_LIBRARY_DIRS}/libpcl_io.so)
 #include_directories(/usr/include/vtk)
 #include_directories(/usr/lib64/vtk)
 
+find_package(VTK REQUIRED)
+find_package(PCL 1.7.1 REQUIRED)
+
+# Fix a compilation bug under ubuntu 16.04 (Xenial)
+list(REMOVE_ITEM PCL_LIBRARIES "vtkproj4")
+
 mark_as_advanced(
     FLANN_INCLUDE_DIRS
     FLANN_LIBRARY
