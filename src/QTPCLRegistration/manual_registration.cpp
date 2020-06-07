@@ -289,6 +289,7 @@ main (int argc, char** argv)
   {
     PCL_ERROR ("Incorrect usage\n");
     print_usage();
+    return (-1);
   }
 
   // TODO do this with PCL console

@@ -33,8 +33,12 @@ void TestView::ButtonPress(bool pressed)
 {
     std::stringstream ss;
 
-    count++;
-    ss << "Count = " << count;
+    count++;    
 
-    ui->label->setText(QString::fromStdString(ss.str()));
+    // Two ways of doing the same thing
+    // Option 1:
+    //ss << "Count = " << count;
+    //ui->label->setText(QString::fromStdString(ss.str()));
+    // Option 2:
+    ui->label->setText(QString("Count = %1").arg(count));
 }
