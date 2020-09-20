@@ -1,4 +1,4 @@
-/* Copyright (C) 2018-2019 Thomas Jespersen, TKJ Electronics. All rights reserved.
+/* Copyright (C) 2018-2020 Thomas Jespersen, TKJ Electronics. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the MIT License
@@ -18,37 +18,6 @@
 
 #include "utils.hpp"
 #include <curl/curl.h>
-
-/*
-static int64_t utime_now()
-{
-    struct timeval tv;
-    gettimeofday (&tv, NULL);
-    return (int64_t) tv.tv_sec * 1000000 + tv.tv_usec;
-}
-
-static void write_i32(uint8_t *buf, int32_t v)
-{
-    buf[0] = (v >> 24) & 0xFF;
-    buf[1] = (v >> 16) & 0xFF;
-    buf[2] = (v >>  8) & 0xFF;
-    buf[3] = (v      ) & 0xFF;
-}
-
-static void write_i64(uint8_t *buf, int64_t v)
-{
-    uint32_t h = (uint32_t) (v >> 32);
-    uint32_t l = (uint32_t) (v);
-
-    write_i32(buf+0, h);
-    write_i32(buf+4, l);
-}
-*/
-
-/*size_t writeDataOnStream(void * buffer, size_t size, size_t nbytes, void * stream){
-    size_t bytes_written = fwrite( buffer, size, nbytes, (FILE *) stream);
-    return bytes_written;
-}*/
 
 static size_t
 WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)

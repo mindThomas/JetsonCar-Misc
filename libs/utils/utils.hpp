@@ -33,6 +33,8 @@
 #include <fstream>
 #include <sys/time.h>
 #include <iomanip>
+#include <cmath>
+#include <chrono>
 
 // for file access (eg. directory traversing)
 #include <sys/types.h>
@@ -216,7 +218,6 @@ std::string getHomeDirectory()
     return std::string(homedir);
 }
 
-
 /* Center-aligns string within a field of width w. Pads with blank spaces
     to enforce alignment. */
 std::string stringCenter(const std::string s, const int w) {
@@ -251,50 +252,6 @@ std::string stringRight(const std::string s, const int w) {
     ss.width(w);     // set  width around displayed #
     ss << s;
     return ss.str();
-}
-
-void WriteFormattedTimestamp(std::string header, int64_t utime)
-{
-    std::time_t seconds = utime / 1000000;
-    int milliseconds = (utime % 1000000) / 1000;
-    std::tm* t = std::gmtime(&seconds); // std::localtime
-    std::cout << header << ": ";
-    std::cout << std::put_time(t, "%Y-%m-%d %H:%M:%S");
-    printf(".%03d\n", milliseconds);
-}
-
-std::string GetLogFormattedTimestamp(int64_t utime)
-{
-    std::string output;
-    std::stringstream ss;
-
-    std::time_t seconds = utime / 1000000;
-    int milliseconds = (utime % 1000000) / 1000;
-    std::tm* t = std::gmtime(&seconds); // std::localtime
-
-    ss << std::put_time(t, "%Y-%m-%d_%H-%M-%S");
-    ss << boost::format("-%03d") % milliseconds;
-    output = ss.str();
-
-    return output;
-}
-
-int64_t GetTimestampFromImageFilename(std::string filename)
-{
-    std::tm t;
-    std::istringstream ss(filename.substr(0, 19));
-    std::istringstream ss2(filename.substr(20, 3));
-    int milliseconds;
-    int64_t utime;
-
-    ss >> std::get_time(&t, "%Y-%m-%d_%H-%M-%S.jpg");
-    if (ss.fail()) return 0;
-
-    std::time_t seconds = std::mktime(&t);
-    if (!(ss2 >> milliseconds)) return 0;
-
-    utime = 1000000 * seconds + 1000 * milliseconds;
-    return utime;
 }
 
 /*
@@ -396,6 +353,167 @@ void textPopup(std::string text)
     std::string popupCmd = "yad --text '" + std::string(text) + "'";
     std::cout << text << std::endl;
     system(popupCmd.c_str());
+}
+
+float Parse2Float(std::string str)
+{
+    float value;
+    try {
+        value = std::stof(str);
+    }
+    catch (std::invalid_argument &e) {
+        return 0;
+    }  // value could not be parsed (eg. is not a number)
+    catch (std::out_of_range &e) {
+        return 0;
+    }
+    return value;
+}
+
+float Parse2RoundedFloat(std::string str)
+{
+    float value;
+    try {
+        value = std::stof(str);
+        value = roundf(value * 1000) / 1000; // round to 3 decimals
+    }
+    catch (std::invalid_argument &e) {
+        return 0;
+    }  // value could not be parsed (eg. is not a number)
+    catch (std::out_of_range &e) {
+        return 0;
+    }
+    return value;
+}
+
+int Parse2Int(std::string str)
+{
+    int value;
+    try {
+        value = std::stoi(str);
+    }
+    catch (std::invalid_argument &e) {
+        return 0;
+    }  // value could not be parsed (eg. is not a number)
+    catch (std::out_of_range &e) {
+        return 0;
+    }
+    return value;
+}
+
+bool Parse2Bool(std::string str)
+{
+    if (!str.compare("true"))
+        return true;
+    else if (!str.compare("false"))
+        return false;
+    else {
+        return false;
+    }
+}
+
+template <typename T>
+std::string to_string_with_precision(const T a_value, const int n = 6)
+{
+    std::ostringstream out;
+    out.precision(n);
+    out << std::fixed << a_value;
+    return out.str();
+}
+
+
+long int GetCurrentMicroseconds()
+{
+    struct timeval tp;
+    gettimeofday(&tp, NULL);
+    long int us = tp.tv_sec * 1000000 + tp.tv_usec;
+    return us;
+}
+
+std::chrono::milliseconds GetCurrentMicrosecondsChrono()
+{
+    using namespace std::chrono;
+    milliseconds ms = duration_cast< milliseconds >(
+            system_clock::now().time_since_epoch()
+    );
+}
+
+void WriteFormattedTimestamp(std::string header, int64_t utime)
+{
+    std::time_t seconds = utime / 1000000;
+    int milliseconds = (utime % 1000000) / 1000;
+    std::tm* t = std::gmtime(&seconds); // std::localtime
+    std::cout << header << ": ";
+    std::cout << std::put_time(t, "%Y-%m-%d %H:%M:%S");
+    printf(".%03d\n", milliseconds);
+}
+
+std::string GetFormattedTimestamp(int64_t utime)
+{
+    std::string output;
+    std::stringstream ss;
+
+    std::time_t seconds = utime / 1000000;
+    int milliseconds = (utime % 1000000) / 1000;
+    std::tm* t = std::localtime(&seconds);
+
+    ss << std::put_time(t, "%Y-%m-%d_%H-%M-%S");
+    ss << boost::format("-%03d") % milliseconds;
+    output = ss.str();
+
+    return output;
+}
+
+std::string GetFormattedTimestampCurrent()
+{
+    std::string output;
+    std::stringstream ss;
+
+    int64_t utime = GetCurrentMicroseconds();
+
+    std::time_t seconds = utime / 1000000;
+    int milliseconds = (utime % 1000000) / 1000;
+    std::tm* t = std::localtime(&seconds);
+
+    ss << std::put_time(t, "%Y-%m-%d_%H-%M-%S");
+    ss << boost::format("-%03d") % milliseconds;
+    output = ss.str();
+
+    return output;
+}
+
+std::string GetLogFormattedTimestamp(int64_t utime)
+{
+    std::string output;
+    std::stringstream ss;
+
+    std::time_t seconds = utime / 1000000;
+    int milliseconds = (utime % 1000000) / 1000;
+    std::tm* t = std::gmtime(&seconds); // std::localtime
+
+    ss << std::put_time(t, "%Y-%m-%d_%H-%M-%S");
+    ss << boost::format("-%03d") % milliseconds;
+    output = ss.str();
+
+    return output;
+}
+
+int64_t GetTimestampFromImageFilename(std::string filename)
+{
+    std::tm t;
+    std::istringstream ss(filename.substr(0, 19));
+    std::istringstream ss2(filename.substr(20, 3));
+    int milliseconds;
+    int64_t utime;
+
+    ss >> std::get_time(&t, "%Y-%m-%d_%H-%M-%S.jpg");
+    if (ss.fail()) return 0;
+
+    std::time_t seconds = std::mktime(&t);
+    if (!(ss2 >> milliseconds)) return 0;
+
+    utime = 1000000 * seconds + 1000 * milliseconds;
+    return utime;
 }
 
 

@@ -116,7 +116,7 @@ int main(int argc, char** argv ) {
 
     if (!boost::filesystem::is_directory(boost::filesystem::path(std::string(getenv("HOME")) + "/jetsoncar_logs"))) {
         if (boost::filesystem::exists(boost::filesystem::path(std::string(getenv("HOME")) + "/jetsoncar_logs"))) {
-            std::cout << "Kugle dump path (~/jetsoncar_logs) already exists but without write permissions" << std::endl;
+            std::cout << "Jetsoncar dump path (~/jetsoncar_logs) already exists but without write permissions" << std::endl;
         } else {
             if (!boost::filesystem::create_directory(boost::filesystem::path(std::string(getenv("HOME")) + "/jetsoncar_logs")))
                 std::cout << "Could not create log folder (~/jetsoncar_logs)" << std::endl;

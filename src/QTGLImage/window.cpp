@@ -51,7 +51,6 @@
 #include "glwidget.h"
 #include "widget.h"
 #include "window.h"
-#include "imagelabel.h"
 
 #include <QGridLayout>
 #include <QLabel>
@@ -72,13 +71,10 @@ Window::Window()
     QLabel *openGL2Label = new QLabel(tr("OpenGL Image"));
     openGL2Label->setAlignment(Qt::AlignHCenter);
 
-    ImageLabel * imageTest = new ImageLabel(this);
-
     QGridLayout *layout = new QGridLayout;
     layout->addWidget(native, 0, 0);
     layout->addWidget(openGL, 0, 1);
-    layout->addWidget(openGL2, 0, 2);
-    layout->addWidget(imageTest, 0, 3);
+    layout->addWidget(openGL2, 0, 2);    
     layout->addWidget(nativeLabel, 1, 0);
     layout->addWidget(openGLLabel, 1, 1);
     layout->addWidget(openGL2Label, 1, 2);
